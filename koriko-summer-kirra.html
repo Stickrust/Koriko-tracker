@@ -875,6 +875,11 @@ function renderTones(idx) {
 function clearAllData() {
     if (!confirm('Reset this page? All entries, twists and letters will be cleared.')) return;
     localStorage.removeItem(KEY);
+    // Also clear Firestore
+    if (typeof saveToFirestore === 'function') {
+        const empty = { entries: [], reflections: [], letter: '', restOpen: false, dice: 0 };
+        saveToFirestore(empty);
+    }
     location.reload();
 }
 
