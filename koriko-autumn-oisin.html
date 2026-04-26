@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autumn — Oisin — Koriko</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --parchment: #faf7f2;
+            --ink: #2b3331;
+            --ink-light: #6b7b78;
+            --gold: #c8962a;
+            --accent: #a05c3a;
+            --accent-soft: rgba(160,92,58,0.07);
+            --accent-border: rgba(160,92,58,0.2);
+            --risky: #b04040;
+            --risky-soft: rgba(176,64,64,0.08);
+            font-size: 18px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Lora', serif;
+            font-size: 1rem;
+            background: #cdd4cb;
+            background-image:
+                radial-gradient(ellipse at 15% 85%, rgba(100,140,90,0.22) 0%, transparent 55%),
+                radial-gradient(ellipse at 85% 15%, rgba(180,210,230,0.22) 0%, transparent 55%);
+            min-height: 100vh;
+            padding: 1.5rem 1rem 3rem;
+        }
+        .back-nav { max-width: 700px; margin: 0 auto 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .back-btn { display: inline-flex; align-items: center; gap: 0.4rem; font-family: 'Lora', serif; font-size: 0.78rem; font-style: italic; color: #4a5553; padding: 0.35rem 0.75rem; border-radius: 2rem; background: rgba(255,255,255,0.5); border: 1px solid rgba(200,190,170,0.4); transition: all 0.2s ease; cursor: pointer; text-decoration: none; }
+        .back-btn:hover { background: rgba(255,255,255,0.85); color: var(--ink); }
+        .breadcrumb { font-family: 'Cormorant Garamond', serif; font-size: 0.83rem; color: rgba(74,85,83,0.6); letter-spacing: 0.05em; }
+        .breadcrumb span { color: rgba(74,85,83,0.35); margin: 0 0.3rem; }
+        .save-badge { font-family: 'Lora', serif; font-size: 0.67rem; font-style: italic; color: var(--ink-light); opacity: 0; transition: opacity 0.4s; margin-left: auto; }
+        .save-badge.show { opacity: 1; }
+        .main-card { max-width: 700px; margin: 0 auto; background: var(--parchment); background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.022'/%3E%3C/svg%3E"); border-radius: 1.1rem; overflow: hidden; border: 1px solid #ddd5c5; box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 5px 18px rgba(0,0,0,0.07); animation: fadeUp 0.55s ease both; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .page-header { padding: 2rem 2.5rem 1.5rem; border-bottom: 1px solid rgba(200,190,170,0.35); display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
+        .witch-avatar { width: 58px; height: 58px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; background: linear-gradient(135deg, #f2ddd0, #e0c0a8); border: 1.5px solid var(--accent-border); flex-shrink: 0; }
+        .header-text .volume-label { font-family: 'Lora', serif; font-style: italic; font-size: 0.76rem; color: var(--ink-light); letter-spacing: 0.08em; text-transform: uppercase; }
+        .header-text .page-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.9rem, 4vw, 2.9rem); font-weight: 300; letter-spacing: 0.2em; color: var(--ink); text-transform: uppercase; line-height: 1; }
+        .header-text .witch-tag { font-style: italic; font-size: 0.76rem; color: var(--accent); margin-top: 0.15rem; }
+        .card-body { padding: 1.75rem 2.5rem; }
+        @media (max-width: 500px) { .card-body { padding: 1.25rem; } }
+        .section-label { font-family: 'Cormorant Garamond', serif; font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 0.65rem; display: flex; align-items: center; gap: 0.5rem; }
+        .section-label::after { content: ''; flex: 1; height: 1px; background: rgba(200,190,170,0.5); }
+        .twist-grid-wrap { display: flex; justify-content: center; margin-bottom: 1.6rem; }
+        .twist-and-dice { display: flex; justify-content: center; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.6rem; }
+        .twist-grid { display: grid; grid-template-columns: repeat(4, 100px); grid-template-rows: repeat(4, 100px); gap: 0.4rem; }
+
+        /* ── Dice Tower ── */
+        .dice-tower {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .dice-tower-track {
+            position: relative;
+            width: 28px;
+            /* matches grid: 4×100px + 3×6.4px gap ≈ 419px */
+            height: 419px;
+        }
+        .dice-tower-track-bg {
+            position: absolute;
+            top: 20px; bottom: 20px;
+            left: 50%; transform: translateX(-50%);
+            width: 3px;
+            background: rgba(200,190,170,0.35);
+            border-radius: 2px;
+        }
+        .dice-tower-fill {
+            position: absolute;
+            bottom: 20px;
+            left: 50%; transform: translateX(-50%);
+            width: 3px;
+            height: 0;
+            background: linear-gradient(to top, #5a7a55, #8aaa80);
+            border-radius: 2px;
+            transition: height 0.3s ease;
+        }
+        /* Arrows pinned to top and bottom of track */
+        .dice-tower-btn {
+            position: absolute;
+            left: 50%; transform: translateX(-50%);
+            background: none; border: none; cursor: pointer;
+            padding: 0; line-height: 1;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0.45; transition: opacity 0.2s;
+            width: 20px; height: 20px;
+        }
+        .dice-tower-btn:hover { opacity: 1; }
+        .dice-tower-btn.btn-up { top: 0; }
+        .dice-tower-btn.btn-down { bottom: 0; }
+        .dice-tower-btn svg { width: 14px; height: 14px; fill: #5a7a55; }
+        .dice-tower-count {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.85rem;
+            font-variant-numeric: lining-nums;
+            color: var(--ink-light);
+            text-align: center;
+            min-width: 1.5rem;
+            line-height: 1;
+        }
+        .dice-tower-icon { line-height: 1; }
+
+        /* ── Lessons ── */
+        .lessons-section {
+            margin-top: 0.65rem;
+            border-top: 1px solid rgba(200,190,170,0.3);
+            padding-top: 0.65rem;
+        }
+        .lessons-label {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--ink-light);
+            margin-bottom: 0.45rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .lessons-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(200,190,170,0.4);
+        }
+        .lesson-skill-select {
+            width: 100%;
+            font-family: 'Lora', serif;
+            font-size: 0.78rem;
+            font-style: italic;
+            color: var(--ink);
+            background: rgba(255,255,255,0.7);
+            border: 1px solid rgba(200,190,170,0.4);
+            border-radius: 0.3rem;
+            padding: 0.32rem 0.5rem;
+            margin-bottom: 0.45rem;
+            cursor: pointer;
+            height: 2rem;
+            -webkit-appearance: menulist;
+            appearance: menulist;
+        }
+        .lesson-textarea {
+            width: 100%;
+            font-family: 'Lora', serif;
+            font-size: 0.78rem;
+            color: var(--ink);
+            background: rgba(255,255,255,0.6);
+            border: 1px solid rgba(200,190,170,0.35);
+            border-radius: 0.35rem;
+            padding: 0.45rem 0.65rem;
+            resize: vertical;
+            min-height: 70px;
+            line-height: 1.6;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .lesson-textarea:focus {
+            outline: none;
+            border-color: rgba(200,150,42,0.45);
+            background: rgba(255,255,255,0.92);
+        }
+        .lesson-textarea::placeholder { color: rgba(107,123,120,0.5); font-style: italic; }
+
+        /* ── Tones ── */
+        .tones-section {
+            margin-top: 0.65rem;
+            border-top: 1px solid rgba(200,190,170,0.3);
+            padding-top: 0.65rem;
+        }
+        .tones-label {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--ink-light);
+            margin-bottom: 0.45rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .tones-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(200,190,170,0.4);
+        }
+        .tones-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            margin-bottom: 0.4rem;
+            min-height: 0;
+        }
+        .tone-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-family: 'Lora', serif;
+            font-size: 0.75rem;
+            font-style: italic;
+            color: var(--ink);
+            background: rgba(255,255,255,0.75);
+            border: 1px solid rgba(200,190,170,0.5);
+            border-radius: 1rem;
+            padding: 0.18rem 0.55rem;
+        }
+        .tone-pill-remove {
+            font-size: 0.6rem;
+            color: var(--ink-light);
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
+            font-family: sans-serif;
+        }
+        .tone-pill-remove:hover { opacity: 1; color: var(--risky); }
+        .tones-input {
+            width: 100%;
+            font-family: 'Lora', serif;
+            font-size: 0.78rem;
+            font-style: italic;
+            color: var(--ink);
+            background: rgba(255,255,255,0.6);
+            border: 1px solid rgba(200,190,170,0.35);
+            border-radius: 0.35rem;
+            padding: 0.38rem 0.65rem;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .tones-input:focus {
+            outline: none;
+            border-color: rgba(200,150,42,0.45);
+            background: rgba(255,255,255,0.92);
+        }
+        .tones-input::placeholder { color: rgba(107,123,120,0.5); font-style: italic; }
+        .twist-cell { position: relative; border-radius: 0.4rem; border: 1px solid rgba(200,190,170,0.38); background: rgba(255,255,255,0.52); user-select: none; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0.4rem; text-align: center; cursor: default; overflow: hidden; }
+        .twist-cell.risky { background: var(--risky-soft); border-color: rgba(176,64,64,0.22); }
+        .twist-slash { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity 0.25s ease; }
+        .twist-cell.slashed .twist-slash { opacity: 1; }
+        .twist-cell.slashed .twist-name { opacity: 0.45; }
+        .twist-cell.slashed .risky-tag { opacity: 0.35; }
+        .twist-name { font-family: 'Cormorant Garamond', serif; font-size: 0.83rem; font-weight: 500; color: var(--ink); line-height: 1.25; position: relative; z-index: 1; transition: opacity 0.25s; }
+        .risky-tag { font-family: 'Lora', serif; font-size: 0.6rem; font-style: italic; color: var(--risky); margin-top: 0.2rem; position: relative; z-index: 1; transition: opacity 0.25s; }
+        .journal-area { margin-bottom: 0.75rem; }
+        .entry-card { border: 1px solid rgba(200,190,170,0.35); border-radius: 0.5rem; background: rgba(255,255,255,0.45); margin-bottom: 0.65rem; overflow: hidden; }
+        .entry-header { display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 0.8rem; background: rgba(255,255,255,0.5); border-bottom: 1px solid rgba(200,190,170,0.25); cursor: pointer; transition: background 0.2s; }
+        .entry-header:hover { background: rgba(255,255,255,0.88); }
+        .entry-num { font-family: 'Cormorant Garamond', serif; font-size: 0.95rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); font-weight: 600; font-variant-numeric: lining-nums; }
+        .entry-chevron { font-size: 0.65rem; color: var(--ink-light); transition: transform 0.25s; }
+        .entry-card.open .entry-chevron { transform: rotate(180deg); }
+        .entry-body { display: none; padding: 0.7rem 0.8rem 0.8rem; }
+        .entry-card.open .entry-body { display: block; }
+        .entry-twist-select { width: 100%; font-family: 'Lora', serif; font-size: 0.78rem; font-style: italic; color: var(--ink); background: rgba(255,255,255,0.7); border: 1px solid rgba(200,190,170,0.4); border-radius: 0.3rem; padding: 0.32rem 0.5rem; margin-bottom: 0.5rem; cursor: pointer; height: 2rem; -webkit-appearance: menulist; appearance: menulist; }
+        .card-picker { display: flex; gap: 0.4rem; margin-bottom: 0.5rem; align-items: center; }
+        .card-picker select { font-family: 'Lora', serif; font-size: 0.78rem; font-style: italic; color: var(--ink); background: rgba(255,255,255,0.7); border: 1px solid rgba(200,190,170,0.4); border-radius: 0.3rem; padding: 0.32rem 0.5rem; cursor: pointer; flex: 1; min-width: 0; height: 2rem; -webkit-appearance: menulist; appearance: menulist; }
+        .card-picker select:disabled { opacity: 0.45; cursor: default; }
+        .card-chosen-label { display: inline-flex; align-items: center; gap: 0.35rem; font-family: 'Cormorant Garamond', serif; font-size: 0.85rem; font-style: italic; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-border); border-radius: 1rem; padding: 0.15rem 0.7rem; margin-bottom: 0.5rem; cursor: pointer; transition: background 0.2s; width: fit-content; }
+        .card-chosen-label:hover { background: rgba(74,127,165,0.14); }
+        .card-chosen-label .clear-card { font-size: 0.7rem; opacity: 0.5; margin-left: 0.2rem; }
+        .entry-textarea { width: 100%; font-family: 'Lora', serif; font-size: 0.83rem; color: var(--ink); background: rgba(255,255,255,0.6); border: 1px solid rgba(200,190,170,0.35); border-radius: 0.35rem; padding: 0.5rem 0.7rem; resize: vertical; min-height: 95px; line-height: 1.65; transition: border-color 0.2s, background 0.2s; }
+        .entry-textarea:focus { outline: none; border-color: rgba(200,150,42,0.45); background: rgba(255,255,255,0.92); }
+        .entry-textarea::placeholder { color: rgba(107,123,120,0.5); font-style: italic; }
+        .add-entry-btn { width: 100%; padding: 0.52rem; border-radius: 0.4rem; border: 1px dashed rgba(200,190,170,0.55); background: transparent; color: var(--ink-light); font-family: 'Lora', serif; font-size: 0.78rem; font-style: italic; cursor: pointer; transition: all 0.2s; margin-bottom: 1.75rem; }
+        .add-entry-btn:hover { background: rgba(255,255,255,0.62); border-color: rgba(200,150,42,0.4); color: var(--ink); }
+        .rest-toggle-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.75rem; padding: 0.8rem 1.25rem; background: rgba(255,255,255,0.55); border: 1px solid rgba(200,190,170,0.4); border-radius: 0.55rem; cursor: pointer; transition: all 0.25s ease; font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); }
+        .rest-toggle-btn:hover { background: rgba(255,255,255,0.88); border-color: rgba(200,150,42,0.35); }
+        .rest-toggle-btn .btn-ornament { color: var(--gold); font-size: 0.75rem; opacity: 0.65; }
+        .rest-toggle-chevron { font-size: 0.7rem; color: var(--ink-light); transition: transform 0.3s ease; margin-left: auto; }
+        .rest-toggle-btn.open .rest-toggle-chevron { transform: rotate(180deg); }
+        .rest-panel { display: none; border-top: 1px solid rgba(200,190,170,0.35); padding: 1.75rem 2.5rem 2rem; background: rgba(250,247,242,0.55); }
+        .rest-panel.open { display: block; }
+        @media (max-width: 500px) { .rest-panel { padding: 1.25rem; } }
+        .rest-panel-header { text-align: center; margin-bottom: 1.4rem; }
+        .rest-title { font-family: 'Cormorant Garamond', serif; font-size: 1.55rem; font-weight: 300; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink); }
+        .rest-sub { font-style: italic; font-size: 0.8rem; color: var(--ink-light); margin-top: 0.2rem; }
+        .rest-prompt-box { background: rgba(200,150,42,0.06); border: 1px solid rgba(200,150,42,0.2); border-radius: 0.5rem; padding: 0.95rem 1.1rem; margin-bottom: 1.25rem; }
+        .rest-prompt-box p { font-size: 0.85rem; line-height: 1.7; color: var(--ink); }
+        .rest-prompt-box em { color: var(--gold); font-style: italic; }
+        .coda-box { background: rgba(255,255,255,0.5); border: 1px solid rgba(200,190,170,0.35); border-radius: 0.5rem; padding: 0.95rem 1.1rem; margin-bottom: 1.25rem; }
+        .coda-title { font-family: 'Cormorant Garamond', serif; font-size: 1rem; font-weight: 600; letter-spacing: 0.06em; color: var(--ink); margin-bottom: 0.38rem; }
+        .coda-box p { font-size: 0.83rem; line-height: 1.65; color: var(--ink); }
+        .coda-options { font-style: italic; font-size: 0.78rem; color: var(--ink-light); margin-top: 0.45rem; }
+        .reflections-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1.3rem; }
+        @media (max-width: 500px) { .reflections-grid { grid-template-columns: 1fr; } }
+        .reflection-card { border: 1px solid rgba(200,190,170,0.3); border-radius: 0.45rem; padding: 0.65rem 0.8rem; background: rgba(255,255,255,0.45); cursor: pointer; transition: all 0.2s; position: relative; }
+        .reflection-card:hover { background: rgba(255,255,255,0.82); }
+        .reflection-card.chosen { background: var(--accent-soft); border-color: var(--accent-border); }
+        .reflection-name { font-family: 'Cormorant Garamond', serif; font-size: 0.95rem; font-weight: 600; color: var(--ink); margin-bottom: 0.22rem; }
+        .reflection-prompt { font-size: 0.76rem; color: var(--ink-light); line-height: 1.48; }
+        .reflection-check { position: absolute; top: 0.48rem; right: 0.58rem; font-size: 0.65rem; color: var(--gold); opacity: 0; }
+        .reflection-card.chosen .reflection-check { opacity: 1; }
+        .letter-label { font-family: 'Cormorant Garamond', serif; font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 0.42rem; display: flex; align-items: center; gap: 0.5rem; }
+        .letter-label::after { content: ''; flex: 1; height: 1px; background: rgba(200,190,170,0.5); }
+        .letter-textarea { width: 100%; font-family: 'Lora', serif; font-size: 0.85rem; color: var(--ink); background: rgba(255,255,255,0.62); border: 1px solid rgba(200,190,170,0.35); border-radius: 0.4rem; padding: 0.7rem 0.9rem; resize: vertical; min-height: 135px; line-height: 1.75; }
+        .letter-textarea:focus { outline: none; border-color: rgba(200,150,42,0.4); background: rgba(255,255,255,0.92); }
+        .letter-textarea::placeholder { color: rgba(107,123,120,0.45); font-style: italic; }
+        .bottom-ornament { display: flex; justify-content: center; padding: 1.1rem 0 0.25rem; color: var(--gold); opacity: 0.3; }
+        .clear-btn {
+            font-family: 'Lora', serif;
+            font-size: 0.72rem;
+            font-style: italic;
+            color: var(--ink-light);
+            background: rgba(255,255,255,0.4);
+            border: 1px solid rgba(200,190,170,0.4);
+            border-radius: 2rem;
+            padding: 0.3rem 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: 0.5rem;
+        }
+        .clear-btn:hover {
+            background: rgba(220,80,80,0.08);
+            border-color: rgba(180,60,60,0.3);
+            color: #b04040;
+        }
+    </style>
+</head>
+<body>
+    <!-- Auth overlay -->
+    <div id="auth-overlay" style="
+        position:fixed; inset:0; z-index:9999;
+        background:rgba(205,212,203,0.97);
+        display:flex; flex-direction:column;
+        align-items:center; justify-content:center;
+        gap:1.5rem; font-family:'Lora',serif;">
+        <div style="font-family:'Cormorant Garamond',serif; font-size:2.5rem; font-weight:300; letter-spacing:0.25em; text-transform:uppercase; color:#2b3331;">Koriko</div>
+        <p style="font-style:italic; color:#6b7b78; font-size:0.95rem;">A Magical Year</p>
+        <button id="sign-in-btn" style="
+            display:inline-flex; align-items:center; gap:0.6rem;
+            font-family:'Lora',serif; font-size:0.9rem; font-style:italic;
+            color:#2b3331; background:rgba(255,255,255,0.8);
+            border:1px solid rgba(200,190,170,0.5); border-radius:2rem;
+            padding:0.6rem 1.4rem; cursor:pointer;
+            transition: all 0.2s ease;">
+            Sign in with Google ✦
+        </button>
+    </div>
+
+<nav class="back-nav">
+    <a class="back-btn" href="koriko-home.html">← Home</a>
+    <div class="breadcrumb">Koriko <span>›</span> Autumn <span>›</span> Oisin</div>
+    <span class="save-badge" id="saveBadge">✦ saved</span>
+    <button class="clear-btn" onclick="clearAllData()">⟳ reset</button>
+    <button id="sign-out-btn" style="display:none; font-family:'Lora',serif; font-size:0.72rem; font-style:italic; color:var(--ink-light); background:rgba(255,255,255,0.4); border:1px solid rgba(200,190,170,0.4); border-radius:2rem; padding:0.3rem 0.7rem; cursor:pointer; margin-left:0.25rem;" onclick="document.getElementById('sign-out-btn').dispatchEvent(new Event('click'))">sign out</button>
+    <button id="sign-out-btn" style="display:none; font-family:'Lora',serif; font-size:0.72rem; font-style:italic; color:var(--ink-light); background:rgba(255,255,255,0.4); border:1px solid rgba(200,190,170,0.4); border-radius:2rem; padding:0.3rem 0.7rem; cursor:pointer; margin-left:0.25rem;" onclick="document.getElementById('sign-out-btn').dispatchEvent(new Event('click'))">sign out</button>
+</nav>
+
+<div class="main-card">
+    <div class="page-header">
+        <div class="witch-avatar"><img src="oisin-avatar.svg" style="width:100%;height:100%;object-fit:contain;"></div>
+        <div class="header-text">
+            <div class="volume-label">Volume V</div>
+            <div class="page-title">Autumn</div>
+            <div class="witch-tag">Oisin — the butterfly bumbler</div>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="section-label">Twist Grid</div>
+        <div class="twist-and-dice">
+            <div class="twist-grid" id="twistGrid">
+                <div class="twist-cell risky" data-idx="0">
+                    <span class="twist-name">scary stories</span>
+                    <span class="risky-tag">risky</span>
+                </div>
+                <div class="twist-cell" data-idx="1">
+                    <span class="twist-name">when you let it go</span>
+                </div>
+                <div class="twist-cell" data-idx="2">
+                    <span class="twist-name">under a blanket</span>
+                </div>
+                <div class="twist-cell risky" data-idx="3">
+                    <span class="twist-name">midnight malady</span>
+                    <span class="risky-tag">risky</span>
+                </div>
+                <div class="twist-cell" data-idx="4">
+                    <span class="twist-name">closing doors</span>
+                </div>
+                <div class="twist-cell risky" data-idx="5">
+                    <span class="twist-name">thinning of the veil</span>
+                    <span class="risky-tag">risky</span>
+                </div>
+                <div class="twist-cell risky" data-idx="6">
+                    <span class="twist-name">turning rotten</span>
+                    <span class="risky-tag">risky</span>
+                </div>
+                <div class="twist-cell" data-idx="7">
+                    <span class="twist-name">surprising affection</span>
+                </div>
+                <div class="twist-cell" data-idx="8">
+                    <span class="twist-name">harvest season</span>
+                </div>
+                <div class="twist-cell risky" data-idx="9">
+                    <span class="twist-name">wild weather</span>
+                    <span class="risky-tag">risky</span>
+                </div>
+                <div class="twist-cell risky" data-idx="10">
+                    <span class="twist-name">unquiet spirits</span>
+                    <span class="risky-tag">risky</span>
+                </div>
+                <div class="twist-cell" data-idx="11">
+                    <span class="twist-name">a feast to celebrate</span>
+                </div>
+                <div class="twist-cell risky" data-idx="12">
+                    <span class="twist-name">a dulled blade</span>
+                    <span class="risky-tag">risky</span>
+                </div>
+                <div class="twist-cell" data-idx="13">
+                    <span class="twist-name">wear and tear</span>
+                </div>
+                <div class="twist-cell" data-idx="14">
+                    <span class="twist-name">if you look inside</span>
+                </div>
+                <div class="twist-cell risky" data-idx="15">
+                    <span class="twist-name">lost in the fog</span>
+                    <span class="risky-tag">risky</span>
+                </div>
+            </div>
+
+            <!-- Dice Tower -->
+            <div class="dice-tower">
+                <div class="dice-tower-track">
+                    <button class="dice-tower-btn btn-up" onclick="changeDice(1)" title="Add die">
+                        <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" transform="rotate(-90 12 12)"/></svg>
+                    </button>
+                    <div class="dice-tower-track-bg"></div>
+                    <div class="dice-tower-fill" id="diceFill"></div>
+                    <button class="dice-tower-btn btn-down" onclick="changeDice(-1)" title="Remove die">
+                        <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" transform="rotate(90 12 12)"/></svg>
+                    </button>
+                </div>
+                <div class="dice-tower-count" id="diceCount">0</div>
+                <div class="dice-tower-icon">
+                    <img src="dice-icon.svg" alt="dice" style="width:22px;height:22px;">
+                </div>
+            </div>
+
+        </div>
+
+        <div class="section-label">Journal Entries</div>
+        <div class="journal-area" id="journal-entries"></div>
+        <button class="add-entry-btn" onclick="addEntry()">+ add entry</button>
+
+        <button class="rest-toggle-btn" id="restToggleBtn" onclick="toggleRest()">
+            <span class="btn-ornament">✦</span>
+            Rest &amp; Letter
+            <span class="rest-toggle-chevron">▾</span>
+        </button>
+    </div>
+
+    <div class="rest-panel" id="restPanel">
+        <div class="rest-panel-header">
+            <div style="display:flex;align-items:center;justify-content:center;gap:0.75rem;margin-bottom:0.2rem;">
+                <span style="color:var(--gold);opacity:0.5;">✦</span>
+                <h2 class="rest-title">Rest &amp; Letter</h2>
+                <span style="color:var(--gold);opacity:0.5;">✦</span>
+            </div>
+            <p class="rest-sub">Volume V — after your last card is resolved</p>
+        </div>
+        <div class="rest-prompt-box">
+            <p><em>Rest for two minutes. Consider falling leaves, the last rays of summer sun, and the dreams and ambitions you are content to let drift away.</em></p>
+        </div>
+        <div class="coda-box">
+            <div class="coda-title">Coda — Balance</div>
+            <p>You are both a witch and a teenager. These roles are burdened with demands and expectations — often in opposition. Which role do you find most comfortable? Has that role brought you the most joy over this past year? What does that say about the balance you've struck?</p>
+            <p class="coda-options">tightrope walker · rooted tree · non-stop-half-done · drifting free</p>
+        </div>
+        <div class="section-label" style="margin-bottom:0.8rem;">Reflections — choose two</div>
+        <div class="reflections-grid">
+            <div class="reflection-card" onclick="toggleReflection(this,0)">
+                <span class="reflection-check">✦</span>
+                <div class="reflection-name">Competence</div>
+                <div class="reflection-prompt">You've become good at a certain type of job, and people respect you for it. Who was the customer that helped you realise this?</div>
+            </div>
+            <div class="reflection-card" onclick="toggleReflection(this,1)">
+                <span class="reflection-check">✦</span>
+                <div class="reflection-name">Renewal</div>
+                <div class="reflection-prompt">You used to tell people something about yourself that you no longer believe is true. Have you figured out what to tell them instead?</div>
+            </div>
+            <div class="reflection-card" onclick="toggleReflection(this,2)">
+                <span class="reflection-check">✦</span>
+                <div class="reflection-name">Self-reliance</div>
+                <div class="reflection-prompt">You are completely reliant on your own abilities now. What have you enjoyed doing your own way? What has made you feel alone?</div>
+            </div>
+            <div class="reflection-card" onclick="toggleReflection(this,3)">
+                <span class="reflection-check">✦</span>
+                <div class="reflection-name">Small talk</div>
+                <div class="reflection-prompt">Write something about autumn harvests or migrating birds. What change in your life do you not feel comfortable sharing right now?</div>
+            </div>
+            <div class="reflection-card" onclick="toggleReflection(this,4)">
+                <span class="reflection-check">✦</span>
+                <div class="reflection-name">Fiction</div>
+                <div class="reflection-prompt">Make up a story that shows you to be a gloomy or sensitive teenager. What are you trying to hide by painting yourself in this light?</div>
+            </div>
+        </div>
+        <div class="letter-label">Letter home to your mentor</div>
+        <textarea class="letter-textarea" id="letter-input" placeholder="Dear mentor…" oninput="saveAll()"></textarea>
+        <div class="bottom-ornament">
+            <svg width="90" height="22" viewBox="0 0 90 22" fill="currentColor">
+                <circle cx="45" cy="11" r="3.5"/>
+                <circle cx="30" cy="11" r="2"/><circle cx="60" cy="11" r="2"/>
+                <circle cx="17" cy="11" r="1.2"/><circle cx="73" cy="11" r="1.2"/>
+                <line x1="0" y1="11" x2="11" y2="11" stroke="currentColor" stroke-width="0.8"/>
+                <line x1="79" y1="11" x2="90" y2="11" stroke="currentColor" stroke-width="0.8"/>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<script>
+const KEY = 'koriko-autumn-oisin-v10';
+const TWISTS = [
+    'scary stories',
+    'when you let it go',
+    'under a blanket',
+    'midnight malady',
+    'closing doors',
+    'thinning of the veil',
+    'turning rotten',
+    'surprising affection',
+    'harvest season',
+    'wild weather',
+    'unquiet spirits',
+    'a feast to celebrate',
+    'a dulled blade',
+    'wear and tear',
+    'if you look inside',
+    'lost in the fog'
+];
+const SUIT_CARDS = {
+    'Wands':  ['Ace','2','3','4','5','6','7','8','9','Page','Knight','Queen','King'],
+    'Cups':   ['Ace','2','3','4','5','6','7','8','9','Page','Knight','Queen','King'],
+    'Swords': ['Ace','2','3','4','5','6','7','8','9','Page','Knight','Queen','King'],
+    'Coins':  ['Ace','2','3','4','5','6','7','8','9','Page','Knight','Queen','King'],
+    'Major Arcana': [
+        'The Chariot','Death','The Devil','The Emperor','The Empress',
+        'The Fool','The Hanged One','The Hermit','The Hierophant','The High Priestess',
+        'Judgement','Justice','The Lovers','The Magician','The Moon',
+        'Strength','The Star','The Sun','Temperance','The Tower',
+        'Wheel of Fortune','The World'
+    ]
+};
+const SUITS = Object.keys(SUIT_CARDS);
+
+let state = loadState();
+function loadState() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || defaultState(); }
+    catch { return defaultState(); }
+}
+function defaultState() {
+    return { entries: [], reflections: [], letter: '', restOpen: false, dice: 0 };
+}
+
+document.querySelectorAll('.twist-cell').forEach(cell => {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'twist-slash');
+    svg.setAttribute('viewBox', '0 0 100 100');
+    svg.setAttribute('preserveAspectRatio', 'none');
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', '8'); line.setAttribute('y1', '8');
+    line.setAttribute('x2', '92'); line.setAttribute('y2', '92');
+    line.setAttribute('stroke', '#c8962a'); line.setAttribute('stroke-width', '5');
+    line.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(line);
+    cell.insertBefore(svg, cell.firstChild);
+});
+
+function refreshGrid() {
+    const used = new Set(state.entries.map(e => e.twist).filter(Boolean));
+    document.querySelectorAll('.twist-cell').forEach(cell => {
+        const name = cell.querySelector('.twist-name').textContent.trim();
+        cell.classList.toggle('slashed', used.has(name));
+    });
+}
+
+function saveNow() {
+    state.letter = document.getElementById('letter-input').value;
+    state.entries.forEach((e, i) => {
+        const ta = document.getElementById('entry-text-' + i);
+        if (ta) e.text = ta.value;
+        const lt = document.getElementById('lesson-text-' + i);
+        if (lt) e.lessonText = lt.value;
+    });
+    localStorage.setItem(KEY, JSON.stringify(state));
+    if (typeof saveToFirestore === 'function') saveToFirestore(state);
+}
+
+let saveTimer;
+function saveAll() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+        state.letter = document.getElementById('letter-input').value;
+        state.entries.forEach((e, i) => {
+            const ta = document.getElementById('entry-text-' + i);
+            if (ta) e.text = ta.value;
+        });
+        localStorage.setItem(KEY, JSON.stringify(state));
+        if (typeof saveToFirestore === 'function') saveToFirestore(state);
+        const badge = document.getElementById('saveBadge');
+        badge.classList.add('show');
+        setTimeout(() => badge.classList.remove('show'), 1800);
+    }, 600);
+}
+
+// ── Restore from Firestore data ──────────────────────
+function restoreFromData(saved) {
+    // Clear current DOM entries first
+    document.getElementById('journal-entries').innerHTML = '';
+    Object.assign(state, saved);
+    restoreState();
+}
+
+function restoreState() {
+    state.entries.forEach(e => addEntry(e));
+    refreshGrid();
+    document.getElementById('letter-input').value = state.letter || '';
+    state.reflections.forEach(idx => {
+        const cards = document.querySelectorAll('.reflection-card');
+        if (cards[idx]) cards[idx].classList.add('chosen');
+    });
+    if (state.restOpen) openRest();
+    updateDiceDisplay();
+}
+
+function addEntry(saved = null) {
+    const container = document.getElementById('journal-entries');
+    const idx = state.entries.length;
+    const entryData = saved || { text: '', twist: '', suit: '', card: '', lessonSkill: '', lessonText: '', tones: [] };
+    if (!saved) state.entries.push(entryData);
+
+    const el = document.createElement('div');
+    el.className = 'entry-card open';
+
+    const twistOptions = TWISTS.map(t =>
+        `<option value="${t}" ${entryData.twist === t ? 'selected' : ''}>${t}</option>`
+    ).join('');
+    const suitOptions = SUITS.map(s =>
+        `<option value="${s}" ${entryData.suit === s ? 'selected' : ''}>${s}</option>`
+    ).join('');
+    const cardOptions = entryData.suit
+        ? SUIT_CARDS[entryData.suit].map(c =>
+            `<option value="${c}" ${entryData.card === c ? 'selected' : ''}>${c}</option>`).join('')
+        : '';
+    // Build full title suffix from card + twist
+    const cardLabel = (entryData.suit && entryData.card)
+        ? (entryData.suit === 'Major Arcana' ? entryData.card : entryData.card + ' of ' + entryData.suit)
+        : '';
+    const titleCard = cardLabel && entryData.twist ? ': ' + cardLabel + ' — ' + entryData.twist
+        : cardLabel ? ': ' + cardLabel
+        : entryData.twist ? ': ' + entryData.twist
+        : '';
+    const pickerHTML = (entryData.suit && entryData.card)
+        ? `<div class="card-chosen-label" onclick="clearCard(${idx})">
+               ${entryData.suit === 'Major Arcana' ? entryData.card : entryData.card + ' of ' + entryData.suit}
+               <span class="clear-card">✕</span></div>`
+        : `<div class="card-picker" id="card-picker-${idx}">
+               <select id="suit-select-${idx}" onchange="onSuitChange(${idx}, this.value)">
+                   <option value="">— suit —</option>${suitOptions}
+               </select>
+               <select id="card-select-${idx}" onchange="onCardChange(${idx}, this.value)" ${entryData.suit ? '' : 'disabled'}>
+                   <option value="">— card —</option>${cardOptions}
+               </select></div>`;
+
+    el.innerHTML = `
+        <div class="entry-header" onclick="this.parentElement.classList.toggle('open')">
+            <span class="entry-num" id="entry-title-${idx}">Entry ${idx + 1}${titleCard}</span>
+            <span class="entry-chevron">▾</span>
+        </div>
+        <div class="entry-body">
+            <div id="card-area-${idx}">${pickerHTML}</div>
+            <select class="entry-twist-select" id="entry-twist-${idx}" onchange="onTwistChange(${idx}, this.value)">
+                <option value="">— select a twist —</option>${twistOptions}
+            </select>
+            <textarea class="entry-textarea" id="entry-text-${idx}"
+                placeholder="Write your journal entry here…"
+                oninput="saveAll()">${entryData.text || ''}</textarea>
+            <div class="lessons-section">
+                <div class="lessons-label">Lesson</div>
+                <select class="lesson-skill-select" id="lesson-skill-${idx}" onchange="onLessonSkillChange(${idx}, this.value)">
+                    <option value="">— skill —</option>
+                    <option value="Power" ${entryData.lessonSkill === 'Power' ? 'selected' : ''}>Power</option>
+                    <option value="Craft" ${entryData.lessonSkill === 'Craft' ? 'selected' : ''}>Craft</option>
+                    <option value="Care" ${entryData.lessonSkill === 'Care' ? 'selected' : ''}>Care</option>
+                    <option value="Lore" ${entryData.lessonSkill === 'Lore' ? 'selected' : ''}>Lore</option>
+                </select>
+                <textarea class="lesson-textarea" id="lesson-text-${idx}"
+                    placeholder="Write your lesson here…"
+                    oninput="onLessonTextChange(${idx}, this.value)">${entryData.lessonText || ''}</textarea>
+            </div>
+            <div class="tones-section">
+                <div class="tones-label">Tones</div>
+                <div class="tones-pills" id="tones-pills-${idx}">
+                    ${(entryData.tones || []).map((t, ti) =>
+                        `<span class="tone-pill">${t}<button class="tone-pill-remove" onclick="removeTone(${idx}, ${ti})">✕</button></span>`
+                    ).join('')}
+                </div>
+                <input class="tones-input" id="tones-input-${idx}"
+                    placeholder="Type a tone and press Return…"
+                    onkeydown="onToneKeydown(event, ${idx})">
+            </div>
+        </div>`;
+    container.appendChild(el);
+}
+
+function buildEntryTitle(idx) {
+    const e = state.entries[idx];
+    if (!e) return 'Entry ' + (idx + 1);
+    const cardPart = (e.suit && e.card)
+        ? (e.suit === 'Major Arcana' ? e.card : e.card + ' of ' + e.suit)
+        : '';
+    const twistPart = e.twist || '';
+    if (cardPart && twistPart) return 'Entry ' + (idx + 1) + ': ' + cardPart + ' — ' + twistPart;
+    if (cardPart) return 'Entry ' + (idx + 1) + ': ' + cardPart;
+    if (twistPart) return 'Entry ' + (idx + 1) + ': ' + twistPart;
+    return 'Entry ' + (idx + 1);
+}
+
+function onTwistChange(entryIdx, newVal) {
+    if (!state.entries[entryIdx]) return;
+    state.entries[entryIdx].twist = newVal;
+    refreshGrid();
+    const title = document.getElementById('entry-title-' + entryIdx);
+    if (title) title.textContent = buildEntryTitle(entryIdx);
+    saveNow();
+}
+
+function onSuitChange(idx, suit) {
+    if (!state.entries[idx]) return;
+    state.entries[idx].suit = suit;
+    state.entries[idx].card = '';
+    const cardSel = document.getElementById('card-select-' + idx);
+    if (!cardSel) return;
+    if (suit) {
+        cardSel.disabled = false;
+        cardSel.innerHTML = '<option value="">— card —</option>' +
+            SUIT_CARDS[suit].map(c => `<option value="${c}">${c}</option>`).join('');
+    } else {
+        cardSel.disabled = true;
+        cardSel.innerHTML = '<option value="">— card —</option>';
+    }
+    saveAll();
+}
+
+function onCardChange(idx, card) {
+    if (!state.entries[idx] || !card) return;
+    state.entries[idx].card = card;
+    const suit = state.entries[idx].suit;
+    const label = suit === 'Major Arcana' ? card : card + ' of ' + suit;
+    const area = document.getElementById('card-area-' + idx);
+    if (area) area.innerHTML = `<div class="card-chosen-label" onclick="clearCard(${idx})">${label} <span class="clear-card">✕</span></div>`;
+    const title = document.getElementById('entry-title-' + idx);
+    if (title) title.textContent = buildEntryTitle(idx);
+    saveNow();
+}
+
+function clearCard(idx) {
+    if (!state.entries[idx]) return;
+    state.entries[idx].suit = '';
+    state.entries[idx].card = '';
+    const title = document.getElementById('entry-title-' + idx);
+    if (title) title.textContent = buildEntryTitle(idx);
+    const area = document.getElementById('card-area-' + idx);
+    if (area) area.innerHTML = `<div class="card-picker" id="card-picker-${idx}">
+        <select id="suit-select-${idx}" onchange="onSuitChange(${idx}, this.value)">
+            <option value="">— suit —</option>
+            ${SUITS.map(s => `<option value="${s}">${s}</option>`).join('')}
+        </select>
+        <select id="card-select-${idx}" disabled onchange="onCardChange(${idx}, this.value)">
+            <option value="">— card —</option>
+        </select></div>`;
+    saveAll();
+}
+
+function toggleReflection(card, idx) {
+    const chosen = document.querySelectorAll('.reflection-card.chosen');
+    if (card.classList.contains('chosen')) {
+        card.classList.remove('chosen');
+        state.reflections = state.reflections.filter(i => i !== idx);
+    } else if (chosen.length < 2) {
+        card.classList.add('chosen');
+        if (!state.reflections.includes(idx)) state.reflections.push(idx);
+    }
+    saveAll();
+}
+
+function openRest() {
+    document.getElementById('restPanel').classList.add('open');
+    document.getElementById('restToggleBtn').classList.add('open');
+}
+function toggleRest() {
+    const panel = document.getElementById('restPanel');
+    const btn = document.getElementById('restToggleBtn');
+    const isOpen = panel.classList.toggle('open');
+    btn.classList.toggle('open', isOpen);
+    state.restOpen = isOpen;
+    saveAll();
+}
+
+// ── Dice Tower ───────────────────────────────────────
+const DICE_MAX = 21;
+const DICE_STEP = 18; // px per die (379px usable / 21)
+
+function changeDice(delta) {
+    const next = Math.max(0, Math.min(DICE_MAX, state.dice + delta));
+    if (next === state.dice) return;
+    state.dice = next;
+    updateDiceDisplay();
+    saveAll();
+}
+
+function updateDiceDisplay() {
+    const fill = document.getElementById('diceFill');
+    const count = document.getElementById('diceCount');
+    if (fill) fill.style.height = (state.dice * DICE_STEP) + 'px';
+    if (fill) fill.style.maxHeight = '379px';
+    if (count) count.textContent = state.dice;
+}
+
+// ── Lesson handlers ──────────────────────────────────
+function onLessonSkillChange(idx, val) {
+    if (!state.entries[idx]) return;
+    state.entries[idx].lessonSkill = val;
+    saveAll();
+}
+
+function onLessonTextChange(idx, val) {
+    if (!state.entries[idx]) return;
+    state.entries[idx].lessonText = val;
+    saveAll();
+}
+
+// ── Tones ────────────────────────────────────────────
+function onToneKeydown(event, idx) {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    const input = document.getElementById('tones-input-' + idx);
+    if (!input) return;
+    const val = input.value.trim();
+    if (!val) return;
+    if (!state.entries[idx]) return;
+    if (!state.entries[idx].tones) state.entries[idx].tones = [];
+    state.entries[idx].tones.push(val);
+    input.value = '';
+    renderTones(idx);
+    saveAll();
+}
+
+function removeTone(idx, toneIdx) {
+    if (!state.entries[idx] || !state.entries[idx].tones) return;
+    state.entries[idx].tones.splice(toneIdx, 1);
+    renderTones(idx);
+    saveAll();
+}
+
+function renderTones(idx) {
+    const container = document.getElementById('tones-pills-' + idx);
+    if (!container) return;
+    const tones = state.entries[idx].tones || [];
+    container.innerHTML = tones.map((t, ti) =>
+        `<span class="tone-pill">${t}<button class="tone-pill-remove" onclick="removeTone(${idx}, ${ti})">✕</button></span>`
+    ).join('');
+}
+
+// ── Clear all data ──────────────────────────────────
+function clearAllData() {
+    if (!confirm('Reset this page? All entries, twists and letters will be cleared.')) return;
+    localStorage.removeItem(KEY);
+    location.reload();
+}
+
+// ── Clear any stale data from previous versions ──────
+restoreState();
+</script>
+
+    <!-- ── Firebase ── -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBOo5iHgb9RGPQmZmKMuhVQ30zUgAx2J_M",
+            authDomain: "koriko-tracker.firebaseapp.com",
+            projectId: "koriko-tracker",
+            storageBucket: "koriko-tracker.firebasestorage.app",
+            messagingSenderId: "161378373904",
+            appId: "1:161378373904:web:ddbce43a1baacf00d61595"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // ── Sign-in overlay ───────────────────────────────
+        const overlay = document.getElementById('auth-overlay');
+        const signInBtn = document.getElementById('sign-in-btn');
+        const signOutBtn = document.getElementById('sign-out-btn');
+
+        if (signInBtn) {
+            signInBtn.addEventListener('click', () => {
+                const provider = new GoogleAuthProvider();
+                signInWithPopup(auth, provider).catch(console.error);
+            });
+        }
+        if (signOutBtn) {
+            signOutBtn.addEventListener('click', () => signOut(auth));
+        }
+
+        // ── Auth state ────────────────────────────────────
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Hide overlay, show app
+                if (overlay) overlay.style.display = 'none';
+                if (signOutBtn) signOutBtn.style.display = 'inline-flex';
+
+                // Load data from Firestore
+                window._fbUser = user;
+                window._fbDb = db;
+
+                if (typeof KEY !== 'undefined') {
+                    try {
+                        const docRef = doc(db, 'users', user.uid, 'pages', KEY);
+                        const snap = await getDoc(docRef);
+                        if (snap.exists()) {
+                            // Merge Firestore data into state and re-render
+                            const saved = snap.data();
+                            if (typeof state !== 'undefined' && typeof restoreFromData === 'function') {
+                                restoreFromData(saved);
+                            }
+                        }
+                    } catch(e) { console.error('Load error:', e); }
+                }
+            } else {
+                // Show overlay
+                if (overlay) overlay.style.display = 'flex';
+                if (signOutBtn) signOutBtn.style.display = 'none';
+            }
+        });
+
+        // ── Save to Firestore ─────────────────────────────
+        window.saveToFirestore = async function(data) {
+            const user = window._fbUser;
+            const db = window._fbDb;
+            if (!user || !db || typeof KEY === 'undefined') return;
+            try {
+                const docRef = doc(db, 'users', user.uid, 'pages', KEY);
+                await setDoc(docRef, data);
+            } catch(e) { console.error('Save error:', e); }
+        };
+    </script>
+</body>
+</html>
